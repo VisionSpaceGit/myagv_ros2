@@ -24,8 +24,7 @@ def generate_launch_description():
 
     robot_description = ParameterValue(
         Command([
-            'xacro ',
-            xacro_file,
+            'xacro ', xacro_file,
             ' ros2_control_config:=', ros2_control_config
         ]),
         value_type=str
@@ -66,7 +65,6 @@ def generate_launch_description():
             'myagv_joint_state_broadcaster',
             '--controller-manager', '/controller_manager',
             '--controller-manager-timeout', '600',
-            '--activate'
         ],
         output='screen'
     )
@@ -78,7 +76,6 @@ def generate_launch_description():
             'myagv_wheel_velocity_controller',
             '--controller-manager', '/controller_manager',
             '--controller-manager-timeout', '600',
-            '--activate'
         ],
         output='screen'
     )
