@@ -21,6 +21,11 @@ import launch_ros.actions
 def generate_launch_description():
 
     return LaunchDescription([
+        launch.actions.DeclareLaunchArgument('robot_name', default_value='tb3_0'),
+        launch.actions.DeclareLaunchArgument('turtlebot_type', default_value='waffle'),
+        launch.actions.DeclareLaunchArgument('x_pose', default_value='0.0'),
+        launch.actions.DeclareLaunchArgument('y_pose', default_value='0.0'),
+        launch.actions.DeclareLaunchArgument('z_pose', default_value='0.01'),
         # TODO(orduno) might not be necessary to have it's own package
         launch_ros.actions.Node(
             package='nav2_gazebo_spawner',

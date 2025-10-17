@@ -152,6 +152,22 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
         remappings=remappings,
         arguments=[urdf])
+    
+    map_to_odom = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='map_to_odom_broadcaster',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+        output='screen'
+    )
+
+    odom_to_bf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='odom_to_basefootprint_broadcaster',
+        arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_footprint'],
+        output='screen'
+    )
 
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -199,5 +215,8 @@ def generate_launch_description():
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(rviz_cmd)
     ld.add_action(bringup_cmd)
+    
+    ld.add_action(map_to_odom)
+    ld.add_action(odom_to_bf)
 
     return ld
