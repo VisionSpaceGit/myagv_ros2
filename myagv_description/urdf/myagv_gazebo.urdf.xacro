@@ -16,9 +16,9 @@
   <xacro:property name="wheel_offset_x" value="0.10555"/>
   <xacro:property name="wheel_offset_y" value="0.10525"/>
 
-  <xacro:property name="imu_height" value="${wheel_radius + base_height + 0.05}"/>
-  <xacro:property name="lidar_height" value="${wheel_radius + base_height + 0.08}"/>
-  <xacro:property name="camera_height" value="${wheel_radius + base_height + 0.15}"/>
+  <xacro:property name="imu_height" value="${base_height}"/>
+  <xacro:property name="lidar_height" value="${wheel_radius + base_height}"/>
+  <xacro:property name="camera_height" value="${base_height / 2}"/>
 
   <xacro:property name="mesh_path" value="$(find myagv_description)/meshes"/>
   <xacro:property name="ros2_control_config_path" value="$(arg ros2_control_config)"/>
@@ -92,10 +92,8 @@
     </visual>
 
     <collision>
-      <!-- <origin xyz="0 0 ${wheel_radius + base_height/2.0}" rpy="0 0 0"/> -->
       <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
       <geometry>
-        <!-- <box size="${base_length} ${base_width} ${base_height}"/> -->
         <mesh filename="file://${mesh_path}/myagv_base.dae" scale="1 1 1"/>
       </geometry>
       <surface>
@@ -109,10 +107,8 @@
     </collision>
 
     <collision>
-      <!-- <origin xyz="0 0 ${wheel_radius + base_height/2.0}" rpy="0 0 0"/> -->
       <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
       <geometry>
-        <!-- <box size="${base_length} ${base_width} ${base_height}"/> -->
         <mesh filename="file://${mesh_path}/myagv_up.dae" scale="1 1 1"/>
       </geometry>
       <surface>
@@ -198,59 +194,47 @@
   <link name="lidar_link">
     <inertial>
       <mass value="0.2"/>
-      <origin xyz="0 0 ${lidar_height}" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia ixx="2e-4" ixy="0" ixz="0" iyy="2e-4" iyz="0" izz="2e-4"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.04" length="0.05"/>
+        <cylinder radius="0.0285" length="0.025"/>
       </geometry>
       <material name="lidar_gray">
         <color rgba="0.3 0.3 0.3 1.0"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.04" length="0.05"/>
-      </geometry>
-    </collision>
   </link>
 
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="0 0 ${lidar_height}" rpy="0 0 0"/>
+    <origin xyz="0.069 0 0.1" rpy="0 0 0"/>
   </joint>
 
   <link name="camera_link">
     <inertial>
       <mass value="0.2"/>
-      <origin xyz="0.05 0 ${camera_height}" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.08 0.04 0.04"/>
+        <box size="0.04 0.02 0.02"/>
       </geometry>
       <material name="camera_black">
         <color rgba="0.15 0.15 0.15 1.0"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.08 0.04 0.04"/>
-      </geometry>
-    </collision>
   </link>
 
   <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
-    <origin xyz="0.05 0 ${camera_height}" rpy="0 0 0"/>
+    <origin xyz="0.125 0 0.075" rpy="0 0 0"/>
   </joint>
 
   <!-- ros2_control hardware interface for wheels -->
