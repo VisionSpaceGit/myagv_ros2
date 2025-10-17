@@ -62,7 +62,7 @@ def generate_launch_description():
         package='controller_manager',
         executable='spawner',
         arguments=[
-            'myagv_joint_state_broadcaster',
+            'joint_state_broadcaster',
             '--controller-manager', '/controller_manager',
             '--controller-manager-timeout', '600',
         ],
@@ -73,7 +73,7 @@ def generate_launch_description():
         package='controller_manager',
         executable='spawner',
         arguments=[
-            'myagv_wheel_velocity_controller',
+            'wheel_velocity_controller',
             '--controller-manager', '/controller_manager',
             '--controller-manager-timeout', '600',
         ],
