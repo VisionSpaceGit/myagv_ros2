@@ -9,14 +9,21 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
+    gazebo_share = get_package_share_directory('gazebo_ros')
     bringup_share = get_package_share_directory('myagv_bringup')
     description_share = get_package_share_directory('myagv_description')
-    gazebo_share = get_package_share_directory('gazebo_ros')
 
     world = LaunchConfiguration('world')
     entity_name = LaunchConfiguration('entity_name')
     ros2_control_config = LaunchConfiguration('ros2_control_config')
     use_sim_time = LaunchConfiguration('use_sim_time')
+
+    default_world = PathJoinSubstitution(
+        [gazebo_share, 'worlds', 'empty.world']
+    )
+    default_ros2_control_config = PathJoinSubstitution(
+        [bringup_share, 'config', 'myagv_ros2_control.yaml']
+    )
 
     xacro_file = PathJoinSubstitution(
         [description_share, 'urdf', 'myagv_gazebo.urdf.xacro']
@@ -69,11 +76,11 @@ def generate_launch_description():
         output='screen'
     )
 
-    wheel_controller_spawner = Node(
+    diff_drive_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
         arguments=[
-            'wheel_velocity_controller',
+            'diff_drive_controller',
             '--controller-manager', '/controller_manager',
             '--controller-manager-timeout', '600',
         ],
@@ -90,15 +97,17 @@ def generate_launch_description():
     after_jsb_wheels = RegisterEventHandler(
         OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[wheel_controller_spawner]
+            on_exit=[diff_drive_controller_spawner]
         )
     )
-
-    default_world = PathJoinSubstitution(
-        [gazebo_share, 'worlds', 'empty.world']
-    )
-    default_ros2_control_config = PathJoinSubstitution(
-        [bringup_share, 'config', 'myagv_ros2_control.yaml']
+    
+    # Temporary use for Gazebo odometry test
+    tf2_static_pub = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf2_base_to_odom',
+        arguments=['0', '0', '0', '0', '0', '0', 'world', 'odom'],
+        output='screen'
     )
 
     return LaunchDescription([
@@ -126,5 +135,6 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         after_spawn_jsb,
-        after_jsb_wheels
+        after_jsb_wheels,
+        tf2_static_pub,
     ])
