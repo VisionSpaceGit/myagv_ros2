@@ -10,6 +10,8 @@
   <xacro:property name="base_height" value="0.11"/>
   <xacro:property name="base_mass" value="4.16"/>
 
+  <xacro:property name="base_mesh_xyz" value="-0.0055 0.00448 0"/>
+
   <xacro:property name="wheel_radius" value="0.04"/>
   <xacro:property name="wheel_width" value="0.032"/>
   <xacro:property name="wheel_mass" value="0.8"/>
@@ -68,7 +70,7 @@
                         origin_xyz="0 0 0"/>
 
     <visual>
-      <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
+      <origin xyz="${base_mesh_xyz}" rpy="0 0 0"/>
       <geometry>
         <mesh filename="file://${mesh_path}/myagv_base.dae" scale="1 1 1"/>
       </geometry>
@@ -78,7 +80,7 @@
     </visual>
 
     <visual>
-      <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
+      <origin xyz="${base_mesh_xyz}" rpy="0 0 0"/>
       <geometry>
         <mesh filename="file://${mesh_path}/myagv_up.dae" scale="1 1 1"/>
       </geometry>
@@ -88,7 +90,7 @@
     </visual>
 
     <collision>
-      <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
+      <origin xyz="${base_mesh_xyz}" rpy="0 0 0"/>
       <geometry>
         <mesh filename="file://${mesh_path}/myagv_base.dae" scale="1 1 1"/>
       </geometry>
@@ -103,7 +105,7 @@
     </collision>
 
     <collision>
-      <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
+      <origin xyz="${base_mesh_xyz}" rpy="0 0 0"/>
       <geometry>
         <mesh filename="file://${mesh_path}/myagv_up.dae" scale="1 1 1"/>
       </geometry>
@@ -198,7 +200,6 @@
   <ros2_control name="myagv_base" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
-      <param name="robot_description">myagv</param>
     </hardware>
     <joint name="front_left_wheel_joint">
       <command_interface name="velocity"/>
@@ -229,31 +230,12 @@
     </plugin>
   </gazebo>
 
-  <gazebo>
-    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
-      <update_rate>50.0</update_rate>
-
-      <body_name>base_link</body_name>
-      
-      <frame_name>odom</frame_name>
-      <child_frame_name>base_link</child_frame_name>
-      
-      <publish_tf>true</publish_tf>
-      <gaussian_noise>0.0001</gaussian_noise>
-
-      <ros>
-        <remapping>~/odom:=/odom</remapping>
-      </ros>
-    </plugin>
-  </gazebo>
-
   <gazebo reference="imu_link">
     <sensor type="imu" name="myagv_imu">
       <always_on>true</always_on>
       <update_rate>50.0</update_rate>
       
       <imu>
-        <topic>/imu/data</topic>
         <gaussian_noise>0.0001</gaussian_noise>
       </imu>
 
@@ -277,8 +259,10 @@
           <horizontal>
             <samples>432</samples>
             <resolution>1</resolution>
-            <min_angle>-3.1415926535</min_angle>
-            <max_angle> 3.1415926535</max_angle>
+            <!-- <min_angle>-3.1415926535</min_angle>
+            <max_angle> 3.1415926535</max_angle> -->
+            <min_angle>-2.2689280082</min_angle>
+            <max_angle> 2.2689280082</max_angle>
           </horizontal>
         </scan>
         <range>
