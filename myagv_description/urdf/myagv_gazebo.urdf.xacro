@@ -16,10 +16,6 @@
   <xacro:property name="wheel_offset_x" value="0.10555"/>
   <xacro:property name="wheel_offset_y" value="0.10525"/>
 
-  <xacro:property name="imu_height" value="${base_height}"/>
-  <xacro:property name="lidar_height" value="${wheel_radius + base_height}"/>
-  <xacro:property name="camera_height" value="${base_height / 2}"/>
-
   <xacro:property name="mesh_path" value="$(find myagv_description)/meshes"/>
   <xacro:property name="ros2_control_config_path" value="$(arg ros2_control_config)"/>
 
@@ -69,7 +65,7 @@
                         size_x="${base_length}"
                         size_y="${base_width}"
                         size_z="${base_height}"
-                        origin_xyz="0 0 ${wheel_radius + base_height/2.0}"/>
+                        origin_xyz="0 0 0"/>
 
     <visual>
       <origin xyz="-0.0055 0.0045 0" rpy="0 0 0"/>
@@ -129,17 +125,16 @@
                                radius="${wheel_radius}"
                                length="${wheel_width}"
                                origin_xyz="0 0 0"
-                               origin_rpy="0 0 0"/>
+                               origin_rpy="0 1.5708 0"/>
       <visual>
         <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
-        <material name="${name}_dark_gray">
-          <color rgba="0.2 0.2 0.2 1.0"/>
+        <material name="${name}_material">
+          <color rgba="0.3 0.3 0.3 1"/>
         </material>
       </visual>
-
       <collision>
         <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <geometry>
@@ -150,61 +145,60 @@
             <ode/>
           </contact>
           <friction>
-            <ode mu="1.2" mu2="1.2"/>
+            <ode mu="1.0" mu2="1.0"/>
           </friction>
         </surface>
       </collision>
     </link>
 
     <joint name="${name}_joint" type="continuous">
+      <origin xyz="${xyz}" rpy="0 0 0"/>
       <parent link="${parent}"/>
       <child link="${name}"/>
-      <origin xyz="${xyz}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
-      <limit effort="20" velocity="25"/>
-      <dynamics damping="0.1" friction="0.05"/>
+      <dynamics friction="0.0" damping="0.0"/>
+      <limit upper="0" lower="0" effort="100.0" velocity="100.0"/>
     </joint>
   </xacro:macro>
 
   <!-- Wheels -->
-  <xacro:wheel_link name="front_left_wheel" parent="base_link"
-                    xyz="${wheel_offset_x} ${wheel_offset_y} ${wheel_radius}"/>
-  <xacro:wheel_link name="front_right_wheel" parent="base_link"
-                    xyz="${wheel_offset_x} ${-wheel_offset_y} ${wheel_radius}"/>
-  <xacro:wheel_link name="rear_left_wheel" parent="base_link"
-                    xyz="${-wheel_offset_x} ${wheel_offset_y} ${wheel_radius}"/>
-  <xacro:wheel_link name="rear_right_wheel" parent="base_link"
-                    xyz="${-wheel_offset_x} ${-wheel_offset_y} ${wheel_radius}"/>
+  <xacro:wheel_link name="front_left_wheel" parent="base_link" xyz="${wheel_offset_x} ${wheel_offset_y} ${wheel_radius}"/>
+  <xacro:wheel_link name="front_right_wheel" parent="base_link" xyz="${wheel_offset_x} ${-wheel_offset_y} ${wheel_radius}"/>
+  <xacro:wheel_link name="rear_left_wheel" parent="base_link" xyz="${-wheel_offset_x} ${wheel_offset_y} ${wheel_radius}"/>
+  <xacro:wheel_link name="rear_right_wheel" parent="base_link" xyz="${-wheel_offset_x} ${-wheel_offset_y} ${wheel_radius}"/>
 
-  <!-- Sensor frames -->
+  <!-- Base Link to IMU -->
   <link name="imu_link"/>
 
-  <joint name="imu_joint" type="fixed">
+  <joint name="base_imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="imu_link"/>
     <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0"/>
   </joint>
 
+  <!-- Lidar -->
   <link name="lidar_link"/>
 
-  <joint name="lidar_joint" type="fixed">
+  <joint name="base_lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="0.069 0 0.105" rpy="0 0 0"/>
+    <origin xyz="0.065 0 0.105" rpy="0 0 0"/>
   </joint>
 
+  <!-- Camera -->
   <link name="camera_link"/>
 
-  <joint name="camera_joint" type="fixed">
+  <joint name="base_camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
-    <origin xyz="0.125 0 0.075" rpy="0 0 0"/>
+    <origin xyz="0.14 0 0.07225" rpy="0 0 0"/>
   </joint>
 
-  <!-- ros2_control hardware interface for wheels -->
-  <ros2_control name="myagv_system" type="system">
+  <!-- ros2_control block -->
+  <ros2_control name="myagv_base" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+      <param name="robot_description">myagv</param>
     </hardware>
     <joint name="front_left_wheel_joint">
       <command_interface name="velocity"/>
