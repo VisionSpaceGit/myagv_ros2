@@ -12,6 +12,7 @@ def generate_launch_description():
     gazebo_share = get_package_share_directory('gazebo_ros')
     bringup_share = get_package_share_directory('myagv_bringup')
     description_share = get_package_share_directory('myagv_description')
+    ekf_share = get_package_share_directory('myagv_odometry')
 
     world = LaunchConfiguration('world')
     entity_name = LaunchConfiguration('entity_name')
@@ -21,12 +22,17 @@ def generate_launch_description():
     default_world = PathJoinSubstitution(
         [gazebo_share, 'worlds', 'empty.world']
     )
+    
     default_ros2_control_config = PathJoinSubstitution(
         [bringup_share, 'config', 'myagv_ros2_control.yaml']
     )
 
     xacro_file = PathJoinSubstitution(
         [description_share, 'urdf', 'myagv_gazebo.urdf.xacro']
+    )
+    
+    efk_file = PathJoinSubstitution(
+        [ekf_share, 'config', 'ekf.yaml']
     )
 
     robot_description = ParameterValue(
@@ -86,11 +92,29 @@ def generate_launch_description():
         ],
         output='screen'
     )
+    
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_node',
+        output='screen',
+        parameters=[
+            efk_file,
+            {'use_sim_time': use_sim_time},
+        ],
+    )
 
     after_spawn_jsb = RegisterEventHandler(
         OnProcessExit(
             target_action=spawn_entity,
             on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+    
+    after_spawn_ekf = RegisterEventHandler(
+        OnProcessExit(
+            target_action=diff_drive_controller_spawner,
+            on_exit=[ekf_node]
         )
     )
 
@@ -102,11 +126,19 @@ def generate_launch_description():
     )
     
     # Temporary use for Gazebo odometry test
-    tf2_static_pub = Node(
+    tf2_static_w2m = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        name='static_tf2_base_to_odom',
-        arguments=['0', '0', '0', '0', '0', '0', 'world', 'odom'],
+        name='static_tf2_world_to_map',
+        arguments=['0', '0', '0', '0', '0', '0', 'world', 'map'],
+        output='screen'
+    )
+    
+    tf2_static_m2o = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf2_map_to_odom',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
         output='screen'
     )
 
@@ -132,9 +164,11 @@ def generate_launch_description():
             description='Use simulation clock if true'
         ),
         gazebo_launch,
-        tf2_static_pub,
+        tf2_static_w2m,
+        # tf2_static_m2o,
         robot_state_publisher,
         spawn_entity,
         after_spawn_jsb,
+        after_spawn_ekf,
         after_jsb_wheels,
     ])
