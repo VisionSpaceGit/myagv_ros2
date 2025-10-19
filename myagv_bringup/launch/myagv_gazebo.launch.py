@@ -132,9 +132,9 @@ def generate_launch_description():
             description='Use simulation clock if true'
         ),
         gazebo_launch,
+        tf2_static_pub,
         robot_state_publisher,
         spawn_entity,
         after_spawn_jsb,
         after_jsb_wheels,
-        tf2_static_pub,
     ])
