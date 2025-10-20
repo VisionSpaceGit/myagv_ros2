@@ -8,43 +8,36 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 
+
 def generate_launch_description():
     gazebo_share = get_package_share_directory('gazebo_ros')
     bringup_share = get_package_share_directory('myagv_bringup')
     description_share = get_package_share_directory('myagv_description')
     ekf_share = get_package_share_directory('myagv_odometry')
-    slam_share = get_package_share_directory('slam_gmapping')
-    nav2_bringup_share = get_package_share_directory('nav2_bringup')
 
     world = LaunchConfiguration('world')
     entity_name = LaunchConfiguration('entity_name')
     ros2_control_config = LaunchConfiguration('ros2_control_config')
     use_sim_time = LaunchConfiguration('use_sim_time')
-    slam = LaunchConfiguration('slam', default='true')
-    slam_rviz = LaunchConfiguration('slam_rviz', default='false')
+    use_rviz = LaunchConfiguration('use_rviz')
 
-    gazebo_world = PathJoinSubstitution(
-        # [gazebo_share, 'worlds', 'empty.world']
+    default_world = PathJoinSubstitution(
         [bringup_share, 'world', 'indoor_room.world']
     )
-    
     default_ros2_control_config = PathJoinSubstitution(
         [bringup_share, 'config', 'myagv_ros2_control.yaml']
     )
 
     xacro_file = PathJoinSubstitution(
         [description_share, 'urdf', 'myagv_gazebo.urdf.xacro']
-        # [description_share, 'urdf', 'myagv_gazebo_skid.urdf.xacro']
     )
-    
-    efk_file = PathJoinSubstitution(
+
+    ekf_config = PathJoinSubstitution(
         [ekf_share, 'config', 'ekf.yaml']
     )
+
     rviz_config = PathJoinSubstitution(
-        [slam_share, 'rviz', 'gmapping.rviz']
-    )
-    nav2_params = PathJoinSubstitution(
-        [bringup_share, 'config', 'nav2_params.yaml']
+        [bringup_share, 'config', 'myagv_rviz.rviz']
     )
 
     robot_description = ParameterValue(
@@ -105,23 +98,22 @@ def generate_launch_description():
         output='screen'
     )
     
+    cmd_vel_relay = Node(
+        package='myagv_bringup',
+        executable='cmd_vel_relay.py',
+        name='cmd_vel_relay',
+        output='screen'
+    )
+
     ekf_node = Node(
         package='robot_localization',
         executable='ekf_node',
         name='ekf_node',
         output='screen',
         parameters=[
-            efk_file,
+            ekf_config,
             {'use_sim_time': use_sim_time},
         ],
-    )
-
-    slam_gmapping_node = Node(
-        package='slam_gmapping',
-        executable='slam_gmapping',
-        name='slam_gmapping',
-        parameters=[{'use_sim_time': use_sim_time}],
-        output='screen',
     )
 
     rviz_node = Node(
@@ -131,17 +123,7 @@ def generate_launch_description():
         arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen',
-    )
-
-    nav2_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([nav2_bringup_share, 'launch', 'navigation_launch.py'])
-        ),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'params_file': nav2_params,
-            'autostart': 'true'
-        }.items()
+        condition=IfCondition(use_rviz),
     )
 
     after_spawn_jsb = RegisterEventHandler(
@@ -151,80 +133,52 @@ def generate_launch_description():
         )
     )
 
-    after_jsb_wheels = RegisterEventHandler(
+    after_jsb_diff_drive = RegisterEventHandler(
         OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
             on_exit=[diff_drive_controller_spawner]
         )
     )
-    
-    after_spawn_ekf = RegisterEventHandler(
+
+    after_diff_drive_ekf = RegisterEventHandler(
         OnProcessExit(
             target_action=diff_drive_controller_spawner,
             on_exit=[ekf_node]
         )
     )
-    
-    after_slam_gzb = RegisterEventHandler(
-        OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[slam_gmapping_node]
-        )
-    )
-    
-    after_rivz_slam = RegisterEventHandler(
-        OnProcessExit(
-            target_action=spawn_entity,
-            on_exit=[rviz_node]
-        )
-    )
-    
-    # Temporary use for Gazebo odometry test
-    tf2_static_w2m = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf2_world_to_map',
-        arguments=['0', '0', '0', '0', '0', '0', 'world', 'map'],
-        output='screen'
-    )
-    
-    # tf2_static_m2o = Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
-    #     name='static_tf2_map_to_odom',
-    #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-    #     output='screen'
-    # )
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'world',
-            default_value=gazebo_world,
+            default_value=default_world,
             description='Gazebo world file'
         ),
         DeclareLaunchArgument(
             'entity_name',
             default_value='myagv',
-            description='Name of the spawned entity in Gazebo'
+            description='Spawned entity name'
         ),
         DeclareLaunchArgument(
             'ros2_control_config',
             default_value=default_ros2_control_config,
-            description='Path to ros2_control controller configuration'
+            description='Path to ros2_control configuration'
         ),
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='true',
-            description='Use simulation clock if true'
+            description='Use simulation clock'
+        ),
+        DeclareLaunchArgument(
+            'use_rviz',
+            default_value='false',
+            description='Launch RViz'
         ),
         gazebo_launch,
-        tf2_static_w2m,
-        # tf2_static_m2o,
         robot_state_publisher,
+        cmd_vel_relay,
         spawn_entity,
         after_spawn_jsb,
-        after_jsb_wheels,
-        after_spawn_ekf,
-        after_slam_gzb,
-        after_rivz_slam,
+        after_jsb_diff_drive,
+        after_diff_drive_ekf,
+        rviz_node,
     ])
