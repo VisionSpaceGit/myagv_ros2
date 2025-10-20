@@ -75,6 +75,8 @@ def generate_launch_description():
                 'recoveries_server',
                 'bt_navigator',
                 'waypoint_follower',
+                'local_costmap',
+                'global_costmap',
             ]}
         ],
     )
