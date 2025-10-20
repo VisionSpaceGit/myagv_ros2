@@ -1,0 +1,355 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="indoor_room_world">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- Surrounding walls -->
+    <model name="wall_north" static="true">
+      <pose>0 5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1.0</ambient>
+            <diffuse>0.8 0.8 0.8 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_south" static="true">
+      <pose>0 -5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1.0</ambient>
+            <diffuse>0.8 0.8 0.8 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_east" static="true">
+      <pose>5.1 0 1.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1.0</ambient>
+            <diffuse>0.8 0.8 0.8 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_west" static="true">
+      <pose>-5.1 0 1.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.0 0.2 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1.0</ambient>
+            <diffuse>0.8 0.8 0.8 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Interior pillars -->
+    <model name="cylindrical_pillar" static="true">
+      <pose>-2 -2 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>3.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>3.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1.0</ambient>
+            <diffuse>0.7 0.7 0.7 1.0</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rectangular_pillar" static="true">
+      <pose>2 2 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.6 0.6 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.6 0.6 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1.0</ambient>
+            <diffuse>0.7 0.7 0.7 1.0</diffuse>
+          </material>
+        </visual><?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="room_10x10_world">
+    <!-- Sun -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- 10m x 10m Room with 4 walls and a floor -->
+    <model name="room_10x10">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+
+      <!-- Floor (10 x 10 x 0.1 m) -->
+      <link name="floor">
+        <pose>0 0 -0.05 0 0 0</pose>
+        <collision name="floor_col">
+          <geometry>
+            <box><size>10 10 0.1</size></box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode><mu>1.0</mu><mu2>1.0</mu2></ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="floor_vis">
+          <geometry>
+            <box><size>10 10 0.1</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.3 0.3 0.35 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Walls (height 3 m, thickness 0.15 m) -->
+      <!-- North wall (y=+5) -->
+      <link name="wall_n">
+        <pose>0 5 1.5 0 0 0</pose>
+        <collision name="wall_n_col">
+          <geometry>
+            <box><size>10 0.15 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="wall_n_vis">
+          <geometry>
+            <box><size>10 0.15 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- South wall (y=-5) -->
+      <link name="wall_s">
+        <pose>0 -5 1.5 0 0 0</pose>
+        <collision name="wall_s_col">
+          <geometry>
+            <box><size>10 0.15 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="wall_s_vis">
+          <geometry>
+            <box><size>10 0.15 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- East wall (x=+5) -->
+      <link name="wall_e">
+        <pose>5 0 1.5 0 0 0</pose>
+        <collision name="wall_e_col">
+          <geometry>
+            <box><size>0.15 10 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="wall_e_vis">
+          <geometry>
+            <box><size>0.15 10 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- West wall (x=-5) -->
+      <link name="wall_w">
+        <pose>-5 0 1.5 0 0 0</pose>
+        <collision name="wall_w_col">
+          <geometry>
+            <box><size>0.15 10 3</size></box>
+          </geometry>
+        </collision>
+        <visual name="wall_w_vis">
+          <geometry>
+            <box><size>0.15 10 3</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Cylindrical pillars (radius 0.25 m, height 2.8 m) -->
+      <link name="cyl_pillar_1">
+        <pose>-2.5 -2.5 1.4 0 0 0</pose>
+        <collision name="cyl_pillar_1_col">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>2.8</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="cyl_pillar_1_vis">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>2.8</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.5 1</ambient>
+            <diffuse>0.4 0.4 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="cyl_pillar_2">
+        <pose>2.5 2.5 1.4 0 0 0</pose>
+        <collision name="cyl_pillar_2_col">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>2.8</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="cyl_pillar_2_vis">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>2.8</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.5 1</ambient>
+            <diffuse>0.4 0.4 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Rectangular pillars (0.5 x 0.5 m, height 2.8 m) -->
+      <link name="box_pillar_1">
+        <pose>-2.5 2.5 1.4 0 0 0</pose>
+        <collision name="box_pillar_1_col">
+          <geometry>
+            <box><size>0.5 0.5 2.8</size></box>
+          </geometry>
+        </collision>
+        <visual name="box_pillar_1_vis">
+          <geometry>
+            <box><size>0.5 0.5 2.8</size></box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.4 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="box_pillar_2">
+        <pose>2.5 -2.5 1.4 0 0 0</pose>
+        <collision name="box_pillar_2_col">
+          <geometry>
+            <box><size>0.5 0.5 2.8</size></box>
+          </geometry>
+        </collision>
+        <visual name="box_pillar_2_vis">
+          <geometry>
+            <box><size>0.5 0.5 2.8</size></box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.4 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Optional: physics timestep -->
+    <physics type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+  </world>
+</sdf>
+
+      </link>
+    </model>
+  </world>
+</sdf>
