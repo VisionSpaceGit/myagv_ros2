@@ -1,68 +1,6 @@
-controller_server:
-  ros__parameters:
-    use_sim_time: true
-    odom_topic: /odometry/filtered
-    controller_frequency: 10.0
-    progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"]
-    controller_plugins: ["FollowPath"]
-    progress_checker:
-      plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
-      movement_time_allowance: 10.0
-    general_goal_checker:
-      plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
-      stateful: true
-    FollowPath:
-      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.8
-      lookahead_dist: 0.6
-      min_lookahead_dist: 0.3
-      max_lookahead_dist: 1.2
-      lookahead_time: 1.5
-      use_velocity_scaled_lookahead_dist: true
-      use_approach_linear_velocity_scaling: true
-      use_collision_avoidance: true
-      transform_tolerance: 0.2
-
-controller_server_rclcpp_node:
-  ros__parameters:
-    use_sim_time: true
-
-planner_server:
-  ros__parameters:
-    use_sim_time: true
-    expected_planner_frequency: 2.0
-    planner_plugins: ["GridBased"]
-    GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 1.0
-      use_astar: false
-      allow_unknown: true
-
-planner_server_rclcpp_node:
-  ros__parameters:
-    use_sim_time: true
-
-recoveries_server:
-  ros__parameters:
-    use_sim_time: true
-    global_frame: odom
-    robot_base_frame: base_footprint
-    transform_timeout: 0.1
-    recovery_plugins: ["spin", "backup", "wait"]
-    spin:
-      plugin: "nav2_recoveries/Spin"
-    backup:
-      plugin: "nav2_recoveries/BackUp"
-    wait:
-      plugin: "nav2_recoveries/Wait"
-
 bt_navigator:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: True
     global_frame: map
     robot_base_frame: base_footprint
     odom_topic: /odometry/filtered
@@ -111,28 +49,92 @@ bt_navigator:
 
 bt_navigator_rclcpp_node:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: True
 
-waypoint_follower:
+controller_server:
   ros__parameters:
-    use_sim_time: true
-    loop_rate: 20
-    stop_on_failure: false
-    waypoint_task_executor_plugin: "wait_at_waypoint"
-    wait_at_waypoint:
-      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
-      enabled: true
-      waypoint_pause_duration: 200
+    use_sim_time: True
+    odom_topic: /odometry/filtered
+    controller_frequency: 10.0
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    general_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+      stateful: True
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.8
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 1.2
+      lookahead_time: 1.5
+      use_velocity_scaled_lookahead_dist: True
+      use_approach_linear_velocity_scaling: True
+      use_collision_avoidance: True
+      transform_tolerance: 0.2
+
+controller_server_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: True
+      global_frame: map
+      robot_base_frame: base_footprint
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      resolution: 0.05
+      robot_radius: 0.22
+      track_unknown_space: True
+      plugins: ["obstacle_layer", "static_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          clearing: True
+          marking: True
+          max_obstacle_height: 2.0
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 3.0
+          obstacle_min_range: 0.05
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        enabled: True
+        map_subscribe_transient_local: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.25
+      always_send_full_costmap: True
+  global_costmap_client:
+    ros__parameters:
+      use_sim_time: True
+  global_costmap_rclcpp_node:
+    ros__parameters:
+      use_sim_time: True
 
 local_costmap:
   local_costmap:
     ros__parameters:
-      use_sim_time: true
+      use_sim_time: True
       global_frame: odom
       robot_base_frame: base_footprint
       update_frequency: 10.0
       publish_frequency: 10.0
-      rolling_window: true
+      rolling_window: True
       width: 5
       height: 5
       resolution: 0.05
@@ -140,13 +142,13 @@ local_costmap:
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: true
+        enabled: True
         observation_sources: scan
         scan:
           topic: /scan
           data_type: "LaserScan"
-          clearing: true
-          marking: true
+          clearing: True
+          marking: True
           max_obstacle_height: 2.0
           obstacle_max_range: 3.0
           obstacle_min_range: 0.05
@@ -159,59 +161,65 @@ local_costmap:
       always_send_full_costmap: True
   local_costmap_client:
     ros__parameters:
-      use_sim_time: true
+      use_sim_time: True
   local_costmap_rclcpp_node:
     ros__parameters:
-      use_sim_time: true
+      use_sim_time: True
 
-global_costmap:
-  global_costmap:
-    ros__parameters:
-      use_sim_time: true
-      global_frame: map
-      robot_base_frame: base_footprint
-      update_frequency: 1.0
-      publish_frequency: 1.0
-      resolution: 0.05
-      robot_radius: 0.22
-      track_unknown_space: true
-      plugins: ["obstacle_layer", "static_layer", "inflation_layer"]
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: true
-        observation_sources: scan
-        scan:
-          topic: /scan
-          data_type: "LaserScan"
-          clearing: true
-          marking: true
-          max_obstacle_height: 2.0
-          obstacle_max_range: 3.0
-          obstacle_min_range: 0.05
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        enabled: true
-        map_subscribe_transient_local: true
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 5.0
-        inflation_radius: 0.4
-  global_costmap_client:
-    ros__parameters:
-      use_sim_time: true
-  global_costmap_rclcpp_node:
-    ros__parameters:
-      use_sim_time: true
-
-lifecycle_manager:
+planner_server:
   ros__parameters:
-    use_sim_time: true
-    autostart: true
-    node_names:
-    - controller_server
-    - planner_server
-    - recoveries_server
-    - bt_navigator
-    - waypoint_follower
-    - local_costmap
-    - global_costmap
+    use_sim_time: True
+    expected_planner_frequency: 1.0
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 2.0
+      use_astar: False
+      allow_unknown: True
+
+planner_server_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+recoveries_server:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: odom
+    robot_base_frame: base_footprint
+    cycle_frequency: 10.0
+    transform_timeout: 0.1
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
+    recovery_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_recoveries/Spin"
+    backup:
+      plugin: "nav2_recoveries/BackUp"
+    wait:
+      plugin: "nav2_recoveries/Wait"
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: True
+    loop_rate: 20
+    stop_on_failure: False
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200
+
+# lifecycle_manager:
+#   ros__parameters:
+#     use_sim_time: True
+#     autostart: True
+#     node_names:
+#     - controller_server
+#     - planner_server
+#     - recoveries_server
+#     - bt_navigator
+#     - waypoint_follower
+#     - local_costmap
+#     - global_costmap
