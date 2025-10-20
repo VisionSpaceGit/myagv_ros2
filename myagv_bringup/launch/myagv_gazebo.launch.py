@@ -3,24 +3,26 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Regi
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
-
 
 def generate_launch_description():
     gazebo_share = get_package_share_directory('gazebo_ros')
     bringup_share = get_package_share_directory('myagv_bringup')
     description_share = get_package_share_directory('myagv_description')
     ekf_share = get_package_share_directory('myagv_odometry')
+    slam_share = get_package_share_directory('slam_gmapping')
 
     world = LaunchConfiguration('world')
     entity_name = LaunchConfiguration('entity_name')
     ros2_control_config = LaunchConfiguration('ros2_control_config')
     use_sim_time = LaunchConfiguration('use_sim_time')
 
-    default_world = PathJoinSubstitution(
-        [gazebo_share, 'worlds', 'empty.world']
+    gazebo_world = PathJoinSubstitution(
+        # [gazebo_share, 'worlds', 'empty.world']
+        [bringup_share, 'world', 'indoor_room.world']
     )
     
     default_ros2_control_config = PathJoinSubstitution(
@@ -29,10 +31,14 @@ def generate_launch_description():
 
     xacro_file = PathJoinSubstitution(
         [description_share, 'urdf', 'myagv_gazebo.urdf.xacro']
+        # [description_share, 'urdf', 'myagv_gazebo_skid.urdf.xacro']
     )
     
     efk_file = PathJoinSubstitution(
         [ekf_share, 'config', 'ekf.yaml']
+    )
+    rviz_config = PathJoinSubstitution(
+        [slam_share, 'rviz', 'gmapping.rviz']
     )
 
     robot_description = ParameterValue(
@@ -104,10 +110,34 @@ def generate_launch_description():
         ],
     )
 
+    slam_gmapping_node = Node(
+        package='slam_gmapping',
+        executable='slam_gmapping',
+        name='slam_gmapping',
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen',
+    )
+
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen',
+    )
+
     after_spawn_jsb = RegisterEventHandler(
         OnProcessExit(
             target_action=spawn_entity,
             on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+
+    after_jsb_wheels = RegisterEventHandler(
+        OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[diff_drive_controller_spawner]
         )
     )
     
@@ -117,11 +147,18 @@ def generate_launch_description():
             on_exit=[ekf_node]
         )
     )
-
-    after_jsb_wheels = RegisterEventHandler(
+    
+    after_slam_gzb = RegisterEventHandler(
         OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[diff_drive_controller_spawner]
+            target_action=spawn_entity,
+            on_exit=[slam_gmapping_node]
+        )
+    )
+    
+    after_rivz_slam = RegisterEventHandler(
+        OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[rviz_node]
         )
     )
     
@@ -134,18 +171,18 @@ def generate_launch_description():
         output='screen'
     )
     
-    tf2_static_m2o = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf2_map_to_odom',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-        output='screen'
-    )
+    # tf2_static_m2o = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='static_tf2_map_to_odom',
+    #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
+    #     output='screen'
+    # )
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'world',
-            default_value=default_world,
+            default_value=gazebo_world,
             description='Gazebo world file'
         ),
         DeclareLaunchArgument(
@@ -169,6 +206,8 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         after_spawn_jsb,
-        after_spawn_ekf,
         after_jsb_wheels,
+        after_spawn_ekf,
+        after_slam_gzb,
+        after_rivz_slam,
     ])
