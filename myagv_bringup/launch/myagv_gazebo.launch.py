@@ -14,11 +14,14 @@ def generate_launch_description():
     description_share = get_package_share_directory('myagv_description')
     ekf_share = get_package_share_directory('myagv_odometry')
     slam_share = get_package_share_directory('slam_gmapping')
+    nav2_bringup_share = get_package_share_directory('nav2_bringup')
 
     world = LaunchConfiguration('world')
     entity_name = LaunchConfiguration('entity_name')
     ros2_control_config = LaunchConfiguration('ros2_control_config')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    slam = LaunchConfiguration('slam', default='true')
+    slam_rviz = LaunchConfiguration('slam_rviz', default='false')
 
     gazebo_world = PathJoinSubstitution(
         # [gazebo_share, 'worlds', 'empty.world']
@@ -39,6 +42,9 @@ def generate_launch_description():
     )
     rviz_config = PathJoinSubstitution(
         [slam_share, 'rviz', 'gmapping.rviz']
+    )
+    nav2_params = PathJoinSubstitution(
+        [bringup_share, 'config', 'nav2_params.yaml']
     )
 
     robot_description = ParameterValue(
@@ -125,6 +131,17 @@ def generate_launch_description():
         arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen',
+    )
+
+    nav2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([nav2_bringup_share, 'launch', 'navigation_launch.py'])
+        ),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'params_file': nav2_params,
+            'autostart': 'true'
+        }.items()
     )
 
     after_spawn_jsb = RegisterEventHandler(
