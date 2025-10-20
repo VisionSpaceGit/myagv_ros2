@@ -14,7 +14,8 @@ def generate_launch_description():
     nav2_params = PathJoinSubstitution(
         [bringup_share, 'config', 'nav2_params.yaml']
     )
-    remaps = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+    # remaps = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+    remaps = []
 
     controller_server = Node(
         package='nav2_controller',
@@ -75,8 +76,8 @@ def generate_launch_description():
                 'recoveries_server',
                 'bt_navigator',
                 'waypoint_follower',
-                'local_costmap',
-                'global_costmap',
+                # 'local_costmap',
+                # 'global_costmap',
             ]}
         ],
     )
